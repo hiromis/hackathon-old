@@ -51,14 +51,19 @@ async def analyze(request):
     # Create heat map 
     xb,_ = data_bunch.one_item(img)
     xb_im = Image(data_bunch.denorm(xb)[0])
+    xb_im.save(path/'static'/'original.png')
     hook_a,hook_g = hooked_backward(learn, pred_idx, xb)
     acts  = hook_a.stored[0]
     avg_acts = acts.mean(0)
-    print(avg_acts.shape)
-    fig,ax = plt.subplots()
-    xb_im.show(ax)
+
+    fig, ax = plt.subplots(figsize=(5,5))
+    plt.subplots_adjust(left=0, right=1, bottom=0, top=1)
+    ax.axis("off")
+    fig.add_axes(ax)
+    ax.imshow(image2np(xb_im.data))
     ax.imshow(avg_acts, alpha=0.8, extent=(0,352,352,0), interpolation='bilinear', cmap='hot')
-    plt.savefig('heat.png')
+    ax.margins(0)
+    plt.savefig(str(path/'static'/'heat.png'))
     return JSONResponse({'result': classes[pred_idx], 'heatmap': ''})
 
 def hooked_backward(learner, cat, xb):
